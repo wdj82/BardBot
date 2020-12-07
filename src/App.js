@@ -1,9 +1,20 @@
+/* eslint-disable no-console */
+/* eslint-disable no-unused-vars */
+import React from 'react';
 import './box-styles.css';
 
-const notes = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'];
+const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 function NoteButton({ note }) {
-    return <button type='button'>{note}</button>;
+    const fileName = note.replace('#', 'sharp');
+    const audio = new Audio(`/audio/${fileName}.wav`);
+    const play = () => audio.play();
+
+    return (
+        <button type='button' onClick={() => audio.play()}>
+            {note}
+        </button>
+    );
 }
 
 function App() {
@@ -11,9 +22,8 @@ function App() {
         <>
             <h1>BardBot</h1>
             <div id='notes'>
-                {notes.map((note, index) => (
-                    // eslint-disable-next-line react/no-array-index-key
-                    <NoteButton key={index} note={note} />
+                {notes.map((note) => (
+                    <NoteButton key={note} note={note} />
                 ))}
             </div>
         </>
