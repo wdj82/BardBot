@@ -1,0 +1,3 @@
+# BardBot
+
+Teaching music theory
