@@ -4,17 +4,19 @@ const maxTime = 10;
 
 function Note() {
     const [value, setValue] = useState(0);
+    const [audio] = useState(() => new Audio('/audio/Csharp.wav'));
 
     useEffect(() => {
+        audio.load();
+        audio.play();
         const interval = setInterval(() => {
             setValue(value + 1);
-            console.log(value);
         }, 1000);
         if (value >= maxTime) {
             clearInterval(interval);
         }
         return () => clearInterval(interval);
-    }, [value]);
+    }, [audio, value]);
 
     return (
         <div
