@@ -1,27 +1,58 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import useKeyPress from '~/hooks/useKeyPress';
-import Note from './Note';
 
-function Key({ keyCode, isPlaying }) {
-    const [playingNote, setPlayingNote] = useState(false);
+const maxTime = 16;
+
+function useInterval(callback, delay) {
+    const intervalRef = useRef(null);
+    const savedCallback = useRef(callback);
 
     useEffect(() => {
-        if (isPlaying) {
-            console.log(`${keyCode} is playing`);
-            setPlayingNote(true);
-        }
-    }, [isPlaying, keyCode]);
+        savedCallback.current = callback;
+    }, [callback]);
 
+    useEffect(() => {
+        const tick = () => savedCallback.current();
+        if (typeof delay === 'number') {
+            intervalRef.current = window.setInterval(tick, delay);
+            return () => window.clearInterval(intervalRef.current);
+        }
+    }, [delay]);
+
+    return intervalRef;
+}
+
+export default function Key({ keyCode, isPlaying, note }) {
     const isKeyPressed = useKeyPress(keyCode);
+    const [value, setValue] = useState(0);
+    const [audio] = useState(typeof Audio !== 'undefined' && new Audio(`/audio/${note}.wav`));
+
+    // useInterval(
+    //     () => {
+    //         if (isPlaying) {
+    //             audio.load();
+    //             audio.play();
+    //             setValue(value + 1);
+    //             console.log(value);
+    //         }
+    //     },
+    //     value < maxTime && isPlaying ? 1000 : null,
+    // );
+
     return (
         <>
             <div className={isKeyPressed ? 'col played' : 'col'}>
                 {keyCode}
-                {playingNote && <Note />}
+                {/* {isPlaying && (
+                    <div
+                        className='note'
+                        style={{
+                            transform: `translateY(${(value / maxTime) * 500}%)`,
+                        }}
+                    />
+                )} */}
             </div>
         </>
     );
 }
-
-export default Key;

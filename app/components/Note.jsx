@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 
-const maxTime = 10;
+const maxTime = 16;
 
-function Note() {
+function Note({ setPlayingNote }) {
     const [value, setValue] = useState(0);
     const [audio] = useState(() => new Audio('/audio/Csharp.wav'));
 
@@ -12,11 +12,12 @@ function Note() {
         const interval = setInterval(() => {
             setValue(value + 1);
         }, 1000);
-        if (value >= maxTime) {
+        if (value > maxTime) {
             clearInterval(interval);
+            setPlayingNote(false);
         }
         return () => clearInterval(interval);
-    }, [audio, value]);
+    }, [audio, setPlayingNote, value]);
 
     return (
         <div
