@@ -15,7 +15,7 @@ export default function App() {
                 <Links />
                 <Scripts />
             </head>
-            <body>
+            <body id='root'>
                 <Outlet />
                 {process.env.NODE_ENV === 'development' ? <LiveReload /> : null}
             </body>

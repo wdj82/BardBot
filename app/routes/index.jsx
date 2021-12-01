@@ -1,39 +1,40 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import stylesURL from '~/styles/index.css';
 import Key from '~/components/Key';
 import { useInterval } from '~/hooks/useInterval';
-
-// 9th tick it checks if the correct and only the correct key is being pressed
-// 10, 11, 12, 13, 14, 15, 16 ticks it waits and informs user of result
-// starts over
-// change start button to stop
+import { BEAT, INTERVAL, MAX_TIME } from '~/utils/constants';
 
 // const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 // const keys = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']'];
 
-// TODO: simplify the state
 const keysArray = [
     { keyCode: 'q', isCurrentNote: false, isTargetNote: false, note: 'C' },
-    { keyCode: 'w', isCurrentNote: false, isTargetNote: false, note: 'Csharp' },
+    { keyCode: 'w', isCurrentNote: false, isTargetNote: false, note: 'C#' },
     { keyCode: 'e', isCurrentNote: false, isTargetNote: false, note: 'D' },
-    { keyCode: 'r', isCurrentNote: false, isTargetNote: false, note: 'Dsharp' },
+    { keyCode: 'r', isCurrentNote: false, isTargetNote: false, note: 'D#' },
     { keyCode: 't', isCurrentNote: false, isTargetNote: false, note: 'E' },
     { keyCode: 'y', isCurrentNote: false, isTargetNote: false, note: 'F' },
-    { keyCode: 'u', isCurrentNote: false, isTargetNote: false, note: 'Fsharp' },
+    { keyCode: 'u', isCurrentNote: false, isTargetNote: false, note: 'F#' },
     { keyCode: 'i', isCurrentNote: false, isTargetNote: false, note: 'G' },
-    { keyCode: 'o', isCurrentNote: false, isTargetNote: false, note: 'Gsharp' },
+    { keyCode: 'o', isCurrentNote: false, isTargetNote: false, note: 'G#' },
     { keyCode: 'p', isCurrentNote: false, isTargetNote: false, note: 'A' },
-    { keyCode: '[', isCurrentNote: false, isTargetNote: false, note: 'Asharp' },
+    { keyCode: '[', isCurrentNote: false, isTargetNote: false, note: 'A#' },
     { keyCode: ']', isCurrentNote: false, isTargetNote: false, note: 'B' },
 ];
+
+function createAudio() {
+    if (typeof Audio === 'undefined') return null;
+
+    return keysArray.map(({ note }) => new Audio(`/audio/${note.replace('#', 'sharp')}.wav`));
+}
 
 export function links() {
     return [{ rel: 'stylesheet', href: stylesURL }];
 }
 
 function getRandomNumber() {
-    return Math.floor(Math.random() * 12);
+    return Math.floor(Math.random() * keysArray.length);
 }
 
 function getTargetNoteNumber(root) {
@@ -44,30 +45,51 @@ function getTargetNoteNumber(root) {
     return number;
 }
 
-function createAudio() {
-    if (typeof Audio === 'undefined') return null;
-
-    return keysArray.map(({ note }) => new Audio(`/audio/${note}.wav`));
-}
-
 export default function IndexRoute() {
     const [keys, setKeys] = useState(keysArray);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentNote, setCurrentNote] = useState(() => getRandomNumber());
     const [targetNote, setTargetNote] = useState(() => getTargetNoteNumber(currentNote));
-    const [value, setValue] = useState(0);
+    const [timer, setTimer] = useState(0);
+    const [isCorrect, setIsCorrect] = useState(false);
     const [audioArray] = useState(() => createAudio());
+
+    const reset = useCallback(
+        (stopping) => {
+            const newCurrentNote = getRandomNumber();
+            const newTargetNote = getTargetNoteNumber(newCurrentNote);
+            console.log(`playing ${keys[newCurrentNote].keyCode}`);
+            console.log(`target key is ${keys[newTargetNote].keyCode}`);
+
+            //copy the array and set the new notes if not stopping
+            let newArray = keys.map((key, index) => {
+                const newKey = { ...key };
+                if (key.isCurrentNote || key.isTargetNote) {
+                    newKey.isCurrentNote = false;
+                    newKey.isTargetNote = false;
+                }
+                if (!stopping && index === newCurrentNote) {
+                    newKey.isCurrentNote = true;
+                } else if (!stopping && index === newTargetNote) {
+                    newKey.isTargetNote = true;
+                }
+                return newKey;
+            });
+
+            setTimer(0);
+            setKeys(newArray);
+            setCurrentNote(newCurrentNote);
+            setTargetNote(newTargetNote);
+            setIsCorrect(false);
+        },
+        [keys],
+    );
 
     function toggleStart() {
         if (isPlaying) {
             console.log(`stopping`);
-            const newArray = [...keys];
-            newArray[currentNote].isCurrentNote = false;
-            newArray[targetNote].isTargetNote = false;
-            setKeys(newArray);
+            reset(true);
             setIsPlaying(false);
-            setCurrentNote(getRandomNumber());
-            setTargetNote(getTargetNoteNumber(currentNote));
         } else {
             console.log(`starting ${keys[currentNote].keyCode}`);
             console.log(`target key is ${keys[targetNote].keyCode}`);
@@ -79,38 +101,50 @@ export default function IndexRoute() {
         }
     }
 
+    // reset the notes and the timer after 16 seconds
+    useEffect(() => {
+        if (timer >= MAX_TIME) {
+            console.log(`resetting`);
+            reset();
+        }
+    }, [reset, timer]);
+
     useInterval(
         () => {
-            if (isPlaying) {
-                if (value < 4) {
-                    audioArray[currentNote].load();
-                    audioArray[currentNote].play();
-                } else if (value >= 4 && value < 8) {
-                    audioArray[targetNote].load();
-                    audioArray[targetNote].play();
-                }
-                setValue(value + 1);
+            if (timer < INTERVAL) {
+                // play current note for first four seconds
+                audioArray[currentNote].load();
+                audioArray[currentNote].play();
+            } else if (timer >= INTERVAL && timer < INTERVAL * 2) {
+                // play target note for next four seconds
+                audioArray[targetNote].load();
+                audioArray[targetNote].play();
             }
+            setTimer(timer + 1);
+            console.log(timer);
         },
-        value < 16 && isPlaying ? 1000 : null,
+        isPlaying && timer < MAX_TIME ? BEAT : null,
     );
 
-    function hitKey(keyCode) {
-        console.log(`hit target key ${keyCode}`);
-    }
-
     return (
-        <>
-            <div>
-                <button type='button' onClick={toggleStart}>
-                    {isPlaying ? 'stop' : 'start'}
-                </button>
+        <div className='wrapper'>
+            <button type='button' onClick={toggleStart}>
+                {isPlaying ? 'stop' : 'start'}
+            </button>
+
+            <div className='ui'>
+                {isPlaying && (
+                    <div>{timer > INTERVAL && timer <= INTERVAL * 2 + 1 ? INTERVAL * 2 + 1 - timer : null}</div>
+                )}
+                {isCorrect && 'correct'}
             </div>
-            <div className='wrapper'>
+
+            <div className='flex-wrapper'>
                 {keys.map((keys) => (
-                    <Key key={keys.keyCode} hitKey={hitKey} value={value} {...keys} />
+                    <Key key={keys.keyCode} setCorrect={setIsCorrect} value={timer} {...keys} />
                 ))}
+                <div className='horizontal' />
             </div>
-        </>
+        </div>
     );
 }

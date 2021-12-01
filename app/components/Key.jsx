@@ -1,33 +1,38 @@
-// import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import useKeyPress from '~/hooks/useKeyPress';
 
 const maxTime = 16;
 
-export default function Key({ keyCode, isCurrentNote, value }) {
+export default function Key({ keyCode, isCurrentNote, isTargetNote, value, setCorrect, note }) {
     const isKeyPressed = useKeyPress(keyCode);
+    const [className, setClassName] = useState('col');
 
-    // const [audio] = useState(typeof Audio !== 'undefined' && new Audio(`/audio/${note}.wav`));
-
-    // useEffect(() => {
-    //     if (isTargetNote && isKeyPressed && value === 8) {
-    //         hitKey(keyCode);
-    //     }
-    // }, [hitKey, isKeyPressed, isTargetNote, keyCode, value]);
+    useEffect(() => {
+        if (isTargetNote && value > 9) {
+            setClassName('col target');
+        } else if (isKeyPressed) {
+            setClassName('col played');
+            if (value === 9) {
+                setCorrect(true);
+            }
+        } else {
+            setClassName('col');
+        }
+    }, [setCorrect, isKeyPressed, isTargetNote, keyCode, value]);
 
     return (
-        <>
-            <div className={isKeyPressed ? 'col played' : 'col'}>
-                {keyCode}
-                {isCurrentNote && (
-                    <div
-                        className='note'
-                        style={{
-                            transform: `translateY(${(value / maxTime) * 500}%)`,
-                        }}
-                    />
-                )}
-            </div>
-        </>
+        <div className={className}>
+            <div>{keyCode}</div>
+            <div>{note}</div>
+            {isCurrentNote && (
+                <div
+                    className='note'
+                    style={{
+                        transform: `translateY(${(value / maxTime) * 500}%)`,
+                    }}
+                />
+            )}
+        </div>
     );
 }
