@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import stylesURL from '~/styles/index.css';
 import Key from '~/components/Key';
 import { useInterval } from '~/hooks/useInterval';
-import { BEAT, INTERVAL, MAX_TIME } from '~/utils/constants';
+import { BEAT_TIMER, INTERVAL, MAX_TIME } from '~/utils/constants';
 
 // const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 // const keys = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']'];
@@ -76,8 +76,8 @@ export default function IndexRoute() {
                 return newKey;
             });
 
-            setTimer(0);
             setKeys(newArray);
+            setTimer(0);
             setCurrentNote(newCurrentNote);
             setTargetNote(newTargetNote);
             setIsCorrect(false);
@@ -105,7 +105,9 @@ export default function IndexRoute() {
     useEffect(() => {
         if (timer >= MAX_TIME) {
             console.log(`resetting`);
+            setIsPlaying(false);
             reset();
+            setIsPlaying(true);
         }
     }, [reset, timer]);
 
@@ -123,7 +125,7 @@ export default function IndexRoute() {
             setTimer(timer + 1);
             console.log(timer);
         },
-        isPlaying && timer < MAX_TIME ? BEAT : null,
+        isPlaying && timer < MAX_TIME ? BEAT_TIMER : null,
     );
 
     return (
