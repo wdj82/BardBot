@@ -50,6 +50,7 @@ body {
 button {
     position: absolute;
     font-size: 2em;
+    z-index: 2;
 }
 
 .ui {
