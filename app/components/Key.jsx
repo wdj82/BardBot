@@ -15,7 +15,7 @@ export default function Key({ keyCode, isCurrentNote, isTargetNote, value, setCo
             if (value === 9 && isTargetNote) {
                 setCorrect(true);
             }
-            if (value > 9) {
+            if (value > 9 || value === 0) {
                 audio.load();
                 audio.play();
             }
