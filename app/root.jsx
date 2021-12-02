@@ -6,7 +6,7 @@ export function links() {
     return [{ rel: 'stylesheet', href: globalStylesUrl }];
 }
 
-export default function App() {
+function Document({ children }) {
     return (
         <html lang='en'>
             <head>
@@ -16,9 +16,28 @@ export default function App() {
                 <Scripts />
             </head>
             <body id='root'>
-                <Outlet />
+                {children}
                 {process.env.NODE_ENV === 'development' ? <LiveReload /> : null}
             </body>
         </html>
+    );
+}
+
+export default function App() {
+    return (
+        <Document>
+            <Outlet />
+        </Document>
+    );
+}
+
+export function ErrorBoundary({ error }) {
+    return (
+        <Document>
+            <div className='error-container'>
+                <h1>Error</h1>
+                <p>{error.message}</p>
+            </div>
+        </Document>
     );
 }

@@ -13,7 +13,7 @@ export default function Key({ keyCode, isCurrentNote, isTargetNote, value, setCo
             setClassName('col target');
         } else if (isKeyPressed) {
             setClassName('col played');
-            if (value === 9) {
+            if (value === 9 && isTargetNote) {
                 setCorrect(true);
             }
         } else {
