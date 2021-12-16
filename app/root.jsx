@@ -1,6 +1,9 @@
 import { LiveReload, Outlet, Links, Scripts } from 'remix';
 
 import globalStylesUrl from '~/styles/global.css';
+import { setup } from './utils/playSound';
+
+setup();
 
 export function links() {
     return [{ rel: 'stylesheet', href: globalStylesUrl }];

@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
+import { ClientOnly } from 'remix-utils';
 
 import stylesURL from '~/styles/index.css';
-import Key from '~/components/Key';
-import { useInterval } from '~/hooks/useInterval';
+import Key from '~/components/Key.client';
+import useInterval from '~/hooks/useInterval';
+
 import { BEAT_TIMER, INTERVAL, MAX_TIME } from '~/utils/constants';
 
 // const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 // const keys = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']'];
+
+// TODO: Switch from intervals to date timer for more accuracy
 
 const keysArray = [
     { keyCode: 'q', isCurrentNote: false, isTargetNote: false, note: 'C' },
@@ -61,8 +65,8 @@ export default function IndexRoute() {
             console.log(`playing ${keys[newCurrentNote].keyCode}`);
             console.log(`target key is ${keys[newTargetNote].keyCode}`);
 
-            //copy the array and set the new notes if not stopping
-            let newArray = keys.map((key, index) => {
+            // copy the array and set the new notes if not stopping
+            const newArray = keys.map((key, index) => {
                 const newKey = { ...key };
                 if (key.isCurrentNote || key.isTargetNote) {
                     newKey.isCurrentNote = false;
@@ -135,16 +139,26 @@ export default function IndexRoute() {
             </button>
 
             <div className='ui'>
-                {isPlaying && (
+                {isPlaying ? (
                     <div>{timer > INTERVAL && timer <= INTERVAL * 2 + 1 ? INTERVAL * 2 + 1 - timer : null}</div>
-                )}
-                {isCorrect && 'correct'}
+                ) : null}
+                {isCorrect ? 'correct' : null}
             </div>
 
             <div className='flex-wrapper'>
-                {keys.map((keys) => (
-                    <Key key={keys.keyCode} setCorrect={setIsCorrect} value={timer} {...keys} />
-                ))}
+                <ClientOnly>
+                    {keys.map((key) => (
+                        <Key
+                            key={key.keyCode}
+                            setCorrect={setIsCorrect}
+                            isCurrentNote={key.isCurrentNote}
+                            isTargetNote={key.isTargetNote}
+                            value={timer}
+                            note={key.note}
+                            keyCode={key.keyCode}
+                        />
+                    ))}
+                </ClientOnly>
                 <div className='horizontal' />
             </div>
         </div>

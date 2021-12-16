@@ -5,11 +5,13 @@
         "node": true
     },
     "extends": [
-        "eslint:recommended",
+        "airbnb",
+        "airbnb/hooks",
         "plugin:react/recommended",
         "plugin:react-hooks/recommended",
         "plugin:react/jsx-runtime",
         "plugin:import/react",
+        "plugin:jsx-a11y/recommended",
         "prettier"
     ],
     "globals": {
@@ -20,11 +22,26 @@
         "ecmaFeatures": {
             "jsx": true
         },
-        "ecmaVersion": 2018,
+        "ecmaVersion": 2020,
         "sourceType": "module"
     },
     "plugins": ["react"],
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    },
     "rules": {
-        "react/prop-types": 0
+        "react/prop-types": 0,
+        "react/function-component-definition": [
+            2,
+            {
+                "namedComponents": "function-declaration"
+            }
+        ],
+        "no-console": "off",
+        "import/extensions": "off",
+        "import/no-unresolved": "off",
+        "consistent-return": "off"
     }
 }
